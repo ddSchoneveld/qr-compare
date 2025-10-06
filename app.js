@@ -1,5 +1,14 @@
 // --- Normalization helpers ---
 const TRACKING_KEYS = new Set(["utm_source","utm_medium","utm_campaign","utm_term","utm_content","gclid","fbclid"]);
+const overlay = document.getElementById("overlay");
+const overlayText = document.getElementById("overlayText");
+
+function flashOverlay(ok) {
+  overlay.className = "overlay " + (ok ? "ok" : "no");
+  overlayText.textContent = ok ? "MATCH ✅" : "NO MATCH ❌";
+  overlay.classList.remove("hidden");
+  setTimeout(() => overlay.classList.add("hidden"), 1200);
+}
 
 function normalizeExact(s) {
   return s.normalize("NFC").trim();
@@ -168,6 +177,7 @@ function showResult(ok) {
   resultEl.className = "result " + (ok ? "ok" : "no");
   resultEl.textContent = ok ? "✅ MATCH" : "❌ NO MATCH";
   statusEl.textContent = ok ? "Same payload" : "Different payloads";
+  flashOverlay(ok); // add this line
 }
 function flash(text) {
   statusEl.textContent = text;
