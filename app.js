@@ -100,7 +100,7 @@ async function onScanSuccess(decodedText /*, decodedResult */) {
     firstValue = normalized;
     statusEl.textContent = "Scan second";
     // brief pause to avoid capturing the same code twice as "second"
-    setTimeout(() => scanner.resume(), 600);
+    setTimeout(() => scanner.resume(), 2000);
   } else {
     const second = normalized;
     const ok = firstValue === second;
