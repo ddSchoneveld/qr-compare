@@ -1,63 +1,15 @@
-// --- Normalization helpers ---
-const TRACKING_KEYS = new Set(["utm_source","utm_medium","utm_campaign","utm_term","utm_content","gclid","fbclid"]);
-const overlay = document.getElementById("overlay");
-const overlayText = document.getElementById("overlayText");
+// Exact comparison only; always use the rear camera; simple two-step flow.
 
-function flashOverlay(ok) {
-  overlay.className = "overlay " + (ok ? "ok" : "no");
-  overlayText.textContent = ok ? "MATCH ✅" : "NO MATCH ❌";
-  overlay.classList.remove("hidden");
-  setTimeout(() => overlay.classList.add("hidden"), 1200);
-}
-
-function normalizeExact(s) {
-  return s.normalize("NFC").trim();
-}
-function normalizeCanonicalUrl(s) {
-  try {
-    const url = new URL(s);
-    url.protocol = url.protocol.toLowerCase();
-    url.hostname = url.hostname.toLowerCase();
-    // strip trailing slash (except root)
-    if (url.pathname !== "/") url.pathname = url.pathname.replace(/\/+$/, "");
-    // strip tracking params & sort remaining
-    const kept = [];
-    url.searchParams.forEach((v, k) => { if (!TRACKING_KEYS.has(k)) kept.push([k, v]); });
-    kept.sort(([a],[b]) => a.localeCompare(b));
-    url.search = "";
-    kept.forEach(([k,v]) => url.searchParams.append(k, v));
-    return url.toString();
-  } catch {
-    return normalizeExact(s);
-  }
-}
-function normalizeDomainPath(s) {
-  try {
-    const url = new URL(s);
-    return `${url.hostname.toLowerCase()}${url.pathname.replace(/\/+$/, "") || ""}`;
-  } catch {
-    return normalizeExact(s);
-  }
-}
-function normalizeByMode(s, mode) {
-  if (mode === "canonical-url") return normalizeCanonicalUrl(s);
-  if (mode === "domain-path") return normalizeDomainPath(s);
-  return normalizeExact(s);
-}
-
-// --- App state ---
 let firstValue = null;
 let scanner = null;
-let currentCameraId = null;
 
 const statusEl = document.getElementById("status");
-const resultEl = document.getElementById("result");
-const cameraSelect = document.getElementById("cameraSelect");
-const modeSelect = document.getElementById("modeSelect");
-const resetBtn = document.getElementById("resetBtn");
-const beepOk = document.getElementById("beepOk");
+const readerEl = document.getElementById("reader");
+const resultScreen = document.getElementById("resultScreen");
+const resultText = document.getElementById("resultText");
+const nextBtn = document.getElementById("nextBtn");
 
-// --- PWA install prompt handling ---
+// PWA install prompt (kept from earlier)
 let deferredPrompt = null;
 const installBtn = document.getElementById("installBtn");
 window.addEventListener("beforeinstallprompt", (e) => {
@@ -65,7 +17,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
   deferredPrompt = e;
   installBtn.hidden = false;
 });
-installBtn.addEventListener("click", async () => {
+installBtn?.addEventListener("click", async () => {
   installBtn.hidden = true;
   if (deferredPrompt) {
     deferredPrompt.prompt();
@@ -74,127 +26,95 @@ installBtn.addEventListener("click", async () => {
   }
 });
 
-// --- Service worker registration ---
+// Service worker registration
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js").catch(console.error);
 }
 
-// --- Controls ---
-document.getElementById("beepTest").addEventListener("click", () => beepOk.play().catch(()=>{}));
-resetBtn.addEventListener("click", () => resetFlow(true));
-modeSelect.addEventListener("change", () => showStatus());
-
-// --- Scanner setup ---
-async function startScanner() {
-  scanner = new Html5Qrcode("reader");
-  await populateCameras();
-
-  await startCameraStream(currentCameraId || { facingMode: "environment" });
-  setTimeout(() => showStatus(), 150);
+// ----- Flow control -----
+function normalizeExact(s) {
+  return s?.normalize("NFC").trim();
 }
 
-async function populateCameras() {
-  const devices = await Html5Qrcode.getCameras();
-  cameraSelect.innerHTML = "";
-  devices.forEach((d,i) => {
-    const opt = document.createElement("option");
-    opt.value = d.id;
-    opt.textContent = d.label || `Camera ${i+1}`;
-    cameraSelect.appendChild(opt);
-  });
-  if (devices[0]) {
-    currentCameraId = devices.find(d => /back|rear|environment/i.test(d.label))?.id || devices[0].id;
-    cameraSelect.value = currentCameraId;
+async function startRound() {
+  // Reset UI
+  firstValue = null;
+  statusEl.textContent = "Scan first";
+  resultScreen.classList.add("hidden");
+  readerEl.style.display = ""; // show camera container
+
+  // Start camera with environment lens
+  await startScanner({ facingMode: { exact: "environment" } });
+}
+
+async function startScanner(cameraConfig) {
+  if (scanner) {
+    try { await scanner.stop(); } catch {}
   }
-  cameraSelect.onchange = async () => {
-    currentCameraId = cameraSelect.value;
-    await restartScanner();
-  };
-}
+  scanner = new Html5Qrcode("reader", { formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ] });
 
-async function startCameraStream(cameraConfig) {
-  await scanner.start(
-    cameraConfig,
-    { fps: 12, qrbox: calcQrBox(), aspectRatio: 1.777 },
-    onScanSuccess,
-    onScanFailure
-  );
-  window.addEventListener("resize", onResize, { passive: true });
-}
-
-async function restartScanner() {
-  try { await scanner.stop(); } catch {}
-  resultEl.textContent = "";
-  await startCameraStream(currentCameraId);
+  // Start with environment camera. If the device doesn't support it, fall back to default.
+  try {
+    await scanner.start(
+      cameraConfig,
+      { fps: 12, qrbox: calcQrBox(), aspectRatio: 1.777 },
+      onScanSuccess,
+      () => {}
+    );
+  } catch (e) {
+    // Fallback: no exact environment — try generic environment keyword or default
+    try {
+      await scanner.start(
+        { facingMode: "environment" },
+        { fps: 12, qrbox: calcQrBox(), aspectRatio: 1.777 },
+        onScanSuccess,
+        () => {}
+      );
+    } catch (err) {
+      statusEl.textContent = "Camera error. Check HTTPS and permissions.";
+      console.error(err);
+    }
+  }
 }
 
 function calcQrBox() {
-  // square box ~70% of width up to 300px
-  const w = Math.min(300, Math.floor(Math.min(window.innerWidth, 480) * 0.7));
+  const w = Math.min(320, Math.floor(Math.min(window.innerWidth, 520) * 0.75));
   return { width: w, height: w };
 }
-function onResize() {
-  // html5-qrcode doesn't dynamically resize qrbox; restart for best UX
-  // Keep it simple: ignore unless user rotates; optional improvement.
+
+function setResult(ok) {
+  resultText.className = "result-text " + (ok ? "ok" : "no");
+  resultText.textContent = ok ? "Match" : "No match";
+  resultScreen.classList.remove("hidden");
+  readerEl.style.display = "none";
+  if (navigator.vibrate) navigator.vibrate(ok ? 80 : [120, 60, 120]);
 }
 
-// --- Scan handlers ---
-function onScanSuccess(decodedText/*, decodedResult */) {
-  scanner.pause(true); // pause stream while processing to avoid double reads
-  const mode = modeSelect.value;
-  const normalized = normalizeByMode(decodedText, mode);
+async function onScanSuccess(decodedText /*, decodedResult */) {
+  // Pause decode while processing to avoid double reads
+  scanner.pause(true);
+
+  const normalized = normalizeExact(decodedText);
 
   if (firstValue === null) {
     firstValue = normalized;
-    flash("First captured. Now scan the second.");
-    beepOk.play().catch(()=>{});
-    setTimeout(() => { scanner.resume(); showStatus(); }, 350);
+    statusEl.textContent = "Scan second";
+    // brief pause to avoid capturing the same code twice as "second"
+    setTimeout(() => scanner.resume(), 600);
   } else {
     const second = normalized;
-    const match = firstValue === second;
-    showResult(match);
-    beepOk.play().catch(()=>{});
-    // Auto-reset after a few seconds
-    setTimeout(() => resetFlow(false), 2500);
+    const ok = firstValue === second;
+
+    statusEl.textContent = ""; // we’ll show only the result screen now
+    try { await scanner.stop(); } catch {} // fully stop camera
+    setResult(ok);
   }
 }
 
-function onScanFailure(/* error */) {
-  // We can ignore per-frame failures to keep logs clean
-}
-
-function showStatus() {
-  const modeLabel = {
-    "exact": "Exact",
-    "canonical-url": "Canonical URL",
-    "domain-path": "Domain + Path"
-  }[modeSelect.value];
-  statusEl.textContent = firstValue === null
-    ? `Scan first QR  •  Mode: ${modeLabel}`
-    : `Scan second QR  •  Mode: ${modeLabel}`;
-}
-function showResult(ok) {
-  resultEl.className = "result " + (ok ? "ok" : "no");
-  resultEl.textContent = ok ? "✅ MATCH" : "❌ NO MATCH";
-  statusEl.textContent = ok ? "Same payload" : "Different payloads";
-  flashOverlay(ok); // add this line
-}
-function flash(text) {
-  statusEl.textContent = text;
-}
-
-async function resetFlow(hard) {
-  firstValue = null;
-  resultEl.textContent = "";
-  resultEl.className = "result";
-  showStatus();
-  try {
-    if (hard) { await restartScanner(); } else { scanner.resume(); }
-  } catch {}
-}
-
-// Kick off
-startScanner().catch(err => {
-  statusEl.textContent = "Camera error. Check HTTPS and permissions.";
-  console.error(err);
+// “Next” starts a fresh round
+nextBtn.addEventListener("click", () => {
+  startRound().catch(console.error);
 });
+
+// Kick off first round
+startRound().catch(console.error);

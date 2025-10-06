@@ -7,12 +7,8 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0ea5e9">
   <link rel="stylesheet" href="styles.css">
-  <!-- Scanner library (UMD) -->
   <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
-<div id="overlay" class="overlay hidden">
-  <div id="overlayText"></div>
-</div>
 <body>
   <header>
     <h1>QR Compare</h1>
@@ -20,37 +16,21 @@
   </header>
 
   <main>
-    <div id="status" class="status">Scan first QR</div>
+    <div id="status" class="status">Scan first</div>
 
-    <div class="controls">
-      <label>
-        Camera:
-        <select id="cameraSelect"></select>
-      </label>
-      <label>
-        Match mode:
-        <select id="modeSelect">
-          <option value="exact">Exact</option>
-          <option value="canonical-url">Canonical URL</option>
-          <option value="domain-path">Domain + Path</option>
-        </select>
-      </label>
-      <button id="resetBtn" class="secondary">Reset</button>
-    </div>
-
+    <!-- Camera preview -->
     <div id="reader"></div>
 
-    <div class="result" id="result" aria-live="polite" role="status"></div>
+    <!-- Result screen (hidden during scanning) -->
+    <div id="resultScreen" class="result-screen hidden">
+      <button id="nextBtn" class="next-btn">Next</button>
+      <div id="resultText" class="result-text">Result</div>
+    </div>
   </main>
 
   <footer>
-    <button id="beepTest" class="secondary">🔊 Beep test</button>
     <p class="fineprint">Works offline after first load. HTTPS required for camera.</p>
   </footer>
-
-  <audio id="beepOk" preload="auto">
-    <source src="data:audio/wav;base64,UklGRkQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABYAZGF0YQEAAA==" type="audio/wav">
-  </audio>
 
   <script src="app.js" type="module"></script>
 </body>
