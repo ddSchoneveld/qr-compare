@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>QR Compare</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0ea5e9">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Scanner library (UMD) -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+  <header>
+    <h1>QR Compare</h1>
+    <button id="installBtn" hidden>Install</button>
+  </header>
+
+  <main>
+    <div id="status" class="status">Scan first QR</div>
+
+    <div class="controls">
+      <label>
+        Camera:
+        <select id="cameraSelect"></select>
+      </label>
+      <label>
+        Match mode:
+        <select id="modeSelect">
+          <option value="exact">Exact</option>
+          <option value="canonical-url">Canonical URL</option>
+          <option value="domain-path">Domain + Path</option>
+        </select>
+      </label>
+      <button id="resetBtn" class="secondary">Reset</button>
+    </div>
+
+    <div id="reader"></div>
+
+    <div class="result" id="result" aria-live="polite" role="status"></div>
+  </main>
+
+  <footer>
+    <button id="beepTest" class="secondary">🔊 Beep test</button>
+    <p class="fineprint">Works offline after first load. HTTPS required for camera.</p>
+  </footer>
+
+  <audio id="beepOk" preload="auto">
+    <source src="data:audio/wav;base64,UklGRkQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABYAZGF0YQEAAA==" type="audio/wav">
+  </audio>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>
