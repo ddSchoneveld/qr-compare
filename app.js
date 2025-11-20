@@ -12,6 +12,8 @@ const resultText = document.getElementById("resultText");
 const nextBtn = document.getElementById("nextBtn");
 const welcomeScreen = document.getElementById("welcomeScreen");
 const startBtn = document.getElementById("startBtn");
+const midScreen = document.getElementById("midScreen");
+const midNextBtn = document.getElementById("midNextBtn");
 
 let deferredPrompt = null;
 const installBtn = document.getElementById("installBtn");
@@ -104,10 +106,16 @@ async function onScanSuccess(decodedText /*, decodedResult */) {
   const normalized = normalizeExact(decodedText);
 
   if (firstValue === null) {
-    firstValue = normalized;
-    statusEl.textContent = "Scan QR code 2";
-    // brief pause to avoid capturing the same code twice as "second"
-    setTimeout(() => scanner.resume(), 10000); // How long?
+      firstValue = normalized;
+
+      // Hide camera and show mid screen
+      await scanner.stop();
+      readerEl.style.display = "none";
+
+      statusEl.textContent = "Eerste QR gescand";
+
+      midScreen.classList.remove("hidden");
+      return;
   } else {
     const second = normalized;
     const ok = firstValue === second;
@@ -122,4 +130,19 @@ async function onScanSuccess(decodedText /*, decodedResult */) {
 nextBtn.addEventListener("click", () => {
   resultScreen.classList.add("hidden");
   startRound().catch(console.error);
+});
+
+midNextBtn.addEventListener("click", () => {
+  midScreen.classList.add("hidden");
+  statusEl.textContent = "Scan 2e QR";
+
+  // Show camera
+  readerEl.style.display = "";
+
+  // Start scanner again (scan #2)
+  startScanner({ facingMode: { exact: "environment" } })
+    .catch(err => {
+      // Fallback if exact camera fails
+      startScanner({ facingMode: "environment" }).catch(console.error);
+    });
 });
