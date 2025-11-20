@@ -57,6 +57,17 @@ main {
   margin: 0 auto;
 }
 
+.result-screen {
+  display: grid;
+  gap: 32px;           /* space between button and card */
+  justify-items: center;
+  margin-top: 32px;    /* space above the result area */
+  padding-bottom: 24px;
+}
+
+.result-screen.hidden {
+  display: none;
+}
 /* ============================================================
    RESULT CARD (WITH BACKGROUND IMAGE + GLOW + BADGE)
    ============================================================ */

@@ -45,14 +45,13 @@ function normalizeExact(s) {
 }
 
 async function startRound() {
-  document.getElementById("splash")?.classList.add("hidden");
-  // Reset 
+  resultScreen.classList.add("hidden");
+  midScreen.classList.add("hidden");
+
   firstValue = null;
   statusEl.textContent = "Scan QR code 1";
-  resultScreen.classList.add("hidden");
-  readerEl.style.display = ""; // show camera container
-
-  // Start camera with environment lens
+  readerEl.style.display = "";
+  
   await startScanner({ facingMode: { exact: "environment" } });
 }
 
@@ -108,12 +107,15 @@ async function onScanSuccess(decodedText /*, decodedResult */) {
   if (firstValue === null) {
       firstValue = normalized;
 
-      // Hide camera and show mid screen
+      // Hide any leftover UI
+      resultScreen.classList.add("hidden");
+
+      // Hide camera
       await scanner.stop();
       readerEl.style.display = "none";
 
+      // Show mid-screen
       statusEl.textContent = "Eerste QR gescand";
-
       midScreen.classList.remove("hidden");
       return;
   } else {
