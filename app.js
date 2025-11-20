@@ -39,7 +39,7 @@ function normalizeExact(s) {
 async function startRound() {
   // Reset UI
   firstValue = null;
-  statusEl.textContent = "Scan first";
+  statusEl.textContent = "Scan 1e qr";
   resultScreen.classList.add("hidden");
   readerEl.style.display = ""; // show camera container
 
@@ -84,7 +84,7 @@ function calcQrBox() {
 
 function setResult(ok) {
   resultText.className = "result-text " + (ok ? "ok" : "no");
-  resultText.textContent = ok ? "Match" : "No match";
+  resultText.textContent = ok ? "Match" : "Verkeerde";
   resultScreen.classList.remove("hidden");
   readerEl.style.display = "none";
   if (navigator.vibrate) navigator.vibrate(ok ? 80 : [120, 60, 120]);
@@ -98,9 +98,9 @@ async function onScanSuccess(decodedText /*, decodedResult */) {
 
   if (firstValue === null) {
     firstValue = normalized;
-    statusEl.textContent = "Scan second";
+    statusEl.textContent = "Scan 2e qr";
     // brief pause to avoid capturing the same code twice as "second"
-    setTimeout(() => scanner.resume(), 2000);
+    setTimeout(() => scanner.resume(), 5000);
   } else {
     const second = normalized;
     const ok = firstValue === second;
