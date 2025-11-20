@@ -63,6 +63,7 @@ main {
   justify-items: center;
   margin-top: 32px;    /* space above the result area */
   padding-bottom: 24px;
+  overflow: visible;
 }
 
 .result-screen.hidden {
