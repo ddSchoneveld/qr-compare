@@ -10,6 +10,8 @@ const readerEl = document.getElementById("reader");
 const resultScreen = document.getElementById("resultScreen");
 const resultText = document.getElementById("resultText");
 const nextBtn = document.getElementById("nextBtn");
+const welcomeScreen = document.getElementById("welcomeScreen");
+const startBtn = document.getElementById("startBtn");
 
 let deferredPrompt = null;
 const installBtn = document.getElementById("installBtn");
@@ -27,6 +29,10 @@ installBtn?.addEventListener("click", async () => {
   }
 });
 
+startBtn.addEventListener("click", () => {
+  welcomeScreen.classList.add("hidden");
+});
+
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js").catch(console.error);
 }
@@ -39,7 +45,7 @@ async function startRound() {
   document.getElementById("splash")?.classList.add("hidden");
   // Reset 
   firstValue = null;
-  statusEl.textContent = "Scan 1e qr";
+  statusEl.textContent = "Scan QR code 1";
   resultScreen.classList.add("hidden");
   readerEl.style.display = ""; // show camera container
 
@@ -71,7 +77,7 @@ async function startScanner(cameraConfig) {
         () => {}
       );
     } catch (err) {
-      statusEl.textContent = "Camera error. Check HTTPS and permissions.";
+      statusEl.textContent = "Camera error. Check HTTPS and toegang.";
       console.error(err);
     }
   }
@@ -84,7 +90,7 @@ function calcQrBox() {
 
 function setResult(ok) {
   resultText.className = "result-text " + (ok ? "ok" : "no");
-  resultText.textContent = ok ? "Match" : "Verkeerde";
+  resultText.innerHTML = `<span>${ ok ? "Match" : "Fout" }</span>`;
   resultScreen.classList.remove("hidden");
   readerEl.style.display = "none";
   if (navigator.vibrate) navigator.vibrate(ok ? 80 : [120, 60, 120]);
@@ -98,7 +104,7 @@ async function onScanSuccess(decodedText /*, decodedResult */) {
 
   if (firstValue === null) {
     firstValue = normalized;
-    statusEl.textContent = "Scan 2e qr";
+    statusEl.textContent = "Scan QR code 2";
     // brief pause to avoid capturing the same code twice as "second"
     setTimeout(() => scanner.resume(), 10000); // How long?
   } else {
