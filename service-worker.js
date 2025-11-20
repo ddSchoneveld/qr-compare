@@ -5,7 +5,6 @@ const ASSETS = [
   "./styles.css",
   "./app.js",
   "./manifest.json",
-  // The library is fetched from CDN; you can add a local fallback later if desired.
 ];
 
 self.addEventListener("install", (e) => {

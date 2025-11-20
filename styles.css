@@ -41,3 +41,27 @@ main { max-width: 720px; margin: 0 auto; padding: 8px 16px 24px; }
 .result-text.no { color: #fff; background: var(--no); }
 
 .fineprint { font-size: 0.8rem; color: var(--muted); margin: 0; text-align: center; }
+
+/* Splash screen */
+.splash {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 1;
+  transition: opacity .6s ease;
+}
+
+.splash.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash-logo {
+  width: 140px;
+  height: auto;
+  opacity: 0.95;
+}

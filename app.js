@@ -1,4 +1,6 @@
-// Exact comparison only; always use the rear camera; simple two-step flow.
+// Schoneveld Breeding
+// QR Vergelijker
+// 20-11-2025, DDamen
 
 let firstValue = null;
 let scanner = null;
@@ -9,7 +11,6 @@ const resultScreen = document.getElementById("resultScreen");
 const resultText = document.getElementById("resultText");
 const nextBtn = document.getElementById("nextBtn");
 
-// PWA install prompt (kept from earlier)
 let deferredPrompt = null;
 const installBtn = document.getElementById("installBtn");
 window.addEventListener("beforeinstallprompt", (e) => {
@@ -26,18 +27,17 @@ installBtn?.addEventListener("click", async () => {
   }
 });
 
-// Service worker registration
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js").catch(console.error);
 }
 
-// ----- Flow control -----
 function normalizeExact(s) {
   return s?.normalize("NFC").trim();
 }
 
 async function startRound() {
-  // Reset UI
+  document.getElementById("splash")?.classList.add("hidden");
+  // Reset 
   firstValue = null;
   statusEl.textContent = "Scan 1e qr";
   resultScreen.classList.add("hidden");
@@ -100,7 +100,7 @@ async function onScanSuccess(decodedText /*, decodedResult */) {
     firstValue = normalized;
     statusEl.textContent = "Scan 2e qr";
     // brief pause to avoid capturing the same code twice as "second"
-    setTimeout(() => scanner.resume(), 5000);
+    setTimeout(() => scanner.resume(), 10000); // How long?
   } else {
     const second = normalized;
     const ok = firstValue === second;
