@@ -31,6 +31,7 @@ installBtn?.addEventListener("click", async () => {
 
 startBtn.addEventListener("click", () => {
   welcomeScreen.classList.add("hidden");
+  startRound().catch(console.error);
 });
 
 if ("serviceWorker" in navigator) {
@@ -119,8 +120,6 @@ async function onScanSuccess(decodedText /*, decodedResult */) {
 
 // “Next” starts a fresh round
 nextBtn.addEventListener("click", () => {
+  resultScreen.classList.add("hidden");
   startRound().catch(console.error);
 });
-
-// Kick off first round
-startRound().catch(console.error);
