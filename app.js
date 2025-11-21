@@ -92,7 +92,10 @@ function calcQrBox() {
 
 function setResult(ok) {
   resultText.className = "result-text " + (ok ? "ok" : "no");
-  resultText.innerHTML = `<span>${ ok ? "Match" : "Fout" }</span>`;
+  const span = document.createElement("span");
+  span.textContent = ok ? "Match" : "Fout";
+  resultText.replaceChildren(span);  // ← replaces everything safely
+
   resultScreen.classList.remove("hidden");
   readerEl.style.display = "none";
   if (navigator.vibrate) navigator.vibrate(ok ? 80 : [120, 60, 120]);
