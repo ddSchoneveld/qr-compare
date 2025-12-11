@@ -1,10 +1,13 @@
 // Schoneveld Breeding
-// QR Vergelijker
-// 20-11-2025, DDamen
+// QR Vergelijker met scanner
+// 11-12-2025, DDamen
+
 
 let firstValue = null;
-let scanner = null;
+let buffer = "";                // collects characters from HID scanner
+let acceptingInput = false;     // prevents input bleeding across screens
 
+// UI references
 const statusEl = document.getElementById("status");
 const readerEl = document.getElementById("reader");
 const resultScreen = document.getElementById("resultScreen");
@@ -15,6 +18,7 @@ const startBtn = document.getElementById("startBtn");
 const midScreen = document.getElementById("midScreen");
 const midNextBtn = document.getElementById("midNextBtn");
 
+// PWA install
 let deferredPrompt = null;
 const installBtn = document.getElementById("installBtn");
 window.addEventListener("beforeinstallprompt", (e) => {
@@ -31,123 +35,112 @@ installBtn?.addEventListener("click", async () => {
   }
 });
 
-startBtn.addEventListener("click", () => {
-  welcomeScreen.classList.add("hidden");
-  startRound().catch(console.error);
-});
-
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js").catch(console.error);
 }
 
+// Normalize helper
 function normalizeExact(s) {
   return s?.normalize("NFC").trim();
 }
 
+// -----------------------------------------------------
+// SCANNING LOGIC — HID (Bluetooth) BARCODE SCANNER
+// -----------------------------------------------------
+document.addEventListener("keydown", (e) => {
+  if (!acceptingInput) return;   // ignore input outside scan phases
+
+  if (e.key === "Enter") {
+    const scanned = buffer.trim();
+    buffer = "";
+
+    if (scanned.length > 0) {
+      onScanSuccess(scanned);
+    }
+  } else {
+    // Append typed character
+    buffer += e.key;
+  }
+});
+
+// -----------------------------------------------------
+// APP FLOW
+// -----------------------------------------------------
+startBtn.addEventListener("click", () => {
+  welcomeScreen.classList.add("hidden");
+  startRound();
+});
+
 async function startRound() {
+  // Reset states
+  firstValue = null;
+  buffer = "";
+  acceptingInput = true;
+
+  // UI Reset
   resultScreen.classList.add("hidden");
   midScreen.classList.add("hidden");
 
-  firstValue = null;
   statusEl.textContent = "Scan QR code 1";
-  readerEl.style.display = "";
-  
-  await startScanner({ facingMode: { exact: "environment" } });
+  readerEl.style.display = "";  // used only as UI indicator
+
+  // No camera start — HID scanner listens automatically
 }
-
-async function startScanner(cameraConfig) {
-  if (scanner) {
-    try { await scanner.stop(); } catch {}
-  }
-  scanner = new Html5Qrcode("reader", { formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ] });
-
-  // Start with environment camera. If the device doesn't support it, fall back to default.
-  try {
-    await scanner.start(
-      cameraConfig,
-      { fps: 12, qrbox: calcQrBox(), aspectRatio: 1.777 },
-      onScanSuccess,
-      () => {}
-    );
-  } catch (e) {
-    // Fallback: no exact environment — try generic environment keyword or default
-    try {
-      await scanner.start(
-        { facingMode: "environment" },
-        { fps: 12, qrbox: calcQrBox(), aspectRatio: 1.777 },
-        onScanSuccess,
-        () => {}
-      );
-    } catch (err) {
-      statusEl.textContent = "Camera error. Check HTTPS and toegang.";
-      console.error(err);
-    }
-  }
-}
-
-function calcQrBox() {
-  const w = Math.min(320, Math.floor(Math.min(window.innerWidth, 520) * 0.75));
-  return { width: w, height: w };
-}
-
-function setResult(ok) {
-  resultText.className = "result-text " + (ok ? "ok" : "no");
-  const span = document.createElement("span");
-  span.textContent = ok ? "Match" : "Fout";
-  resultText.replaceChildren(span);  // ← replaces everything safely
-
-  resultScreen.classList.remove("hidden");
-  readerEl.style.display = "none";
-  if (navigator.vibrate) navigator.vibrate(ok ? 80 : [120, 60, 120]);
-}
-
-async function onScanSuccess(decodedText /*, decodedResult */) {
-  // Pause decode while processing to avoid double reads
-  scanner.pause(true);
-
-  const normalized = normalizeExact(decodedText);
-
-  if (firstValue === null) {
-      firstValue = normalized;
-
-      // Hide any leftover UI
-      resultScreen.classList.add("hidden");
-
-      // Hide camera
-      await scanner.stop();
-      readerEl.style.display = "none";
-
-      // Show mid-screen
-      statusEl.textContent = "Eerste QR gescand";
-      midScreen.classList.remove("hidden");
-      return;
-  } else {
-    const second = normalized;
-    const ok = firstValue === second;
-
-    statusEl.textContent = ""; // we’ll show only the result screen now
-    try { await scanner.stop(); } catch {} // fully stop camera
-    setResult(ok);
-  }
-}
-
-// “Next” starts a fresh round
-nextBtn.addEventListener("click", () => {
-  resultScreen.classList.add("hidden");
-  startRound().catch(console.error);
-});
 
 midNextBtn.addEventListener("click", () => {
   midScreen.classList.add("hidden");
   statusEl.textContent = "Scan 2e QR";
-
-  // Show camera
-  readerEl.style.display = "";
-
-  // Start scanner again (scan #2)
-  startScanner({ facingMode: { exact: "environment" } })
-    .catch(err => {
-      // Fallback if exact camera fails
-      startScanner({ facingMode: "environment" }).catch(console.error);
-    });
+  acceptingInput = true;
 });
+
+nextBtn.addEventListener("click", () => {
+  startRound();
+});
+
+// -----------------------------------------------------
+// QR HANDLING
+// -----------------------------------------------------
+async function onScanSuccess(decodedText) {
+  acceptingInput = false; // debounce
+
+  const normalized = normalizeExact(decodedText);
+
+  if (firstValue === null) {
+    // Store first QR
+    firstValue = normalized;
+
+    statusEl.textContent = "Eerste QR gescand";
+
+    // Hide scanner UI box
+    readerEl.style.display = "none";
+
+    // Show mid screen
+    midScreen.classList.remove("hidden");
+
+    // Prepare for next scan
+    buffer = "";
+    setTimeout(() => (acceptingInput = true), 300);
+    return;
+  }
+
+  // Compare second QR
+  const ok = firstValue === normalized;
+
+  statusEl.textContent = "";
+  setResult(ok);
+}
+
+function setResult(ok) {
+  resultText.className = "result-text " + (ok ? "ok" : "no");
+
+  const span = document.createElement("span");
+  span.textContent = ok ? "Match" : "Fout";
+  resultText.replaceChildren(span);
+
+  resultScreen.classList.remove("hidden");
+  readerEl.style.display = "none";
+
+  if (navigator.vibrate) {
+    navigator.vibrate(ok ? 80 : [120, 60, 120]);
+  }
+}
