@@ -3,11 +3,12 @@ body {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  min-height: 100vh;
+  min-height: 100svh; /* 👈 modern fix voor mobiel */
   padding: 2vh 4vw;
   box-sizing: border-box;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: #f9f9f9;
+  overflow-x: hidden;
 }
 
 /* Bovenaan status */
