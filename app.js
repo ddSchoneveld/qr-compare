@@ -9,106 +9,105 @@ const State = {
 
 let state = State.SCAN_1;
 let mode = "enkel";
-
 let firstValue = null;
 let secondValue = null;
 let buffer = "";
 let acceptingInput = true;
 
+let audioCtx = null;
+
+// -------------------------------------------------------------
+// INIT
+// -------------------------------------------------------------
+function initApp() {
+  bindUIEvents();
+  setMode("enkel");
+  updateStatus("Start scannen");
+}
+
 // -------------------------------------------------------------
 // UI ELEMENTS
 // -------------------------------------------------------------
-const statusEl = document.getElementById("status");
-const midScreen = document.getElementById("midScreen");
-const resultScreen = document.getElementById("resultScreen");
-const resultText = document.getElementById("resultText");
+function getEl(id) {
+  return document.getElementById(id);
+}
 
-const firstScannedValueEl = document.getElementById("firstScannedValue");
-const secondScannedValueEl = document.getElementById("secondScannedValue");
-
-const resetBtn = document.getElementById("resetBtn");
-const modeEnkelBtn = document.getElementById("modeEnkel");
-const modeMeerdereBtn = document.getElementById("modeMeerdere");
+const UI = {
+  status: getEl("status"),
+  midScreen: getEl("midScreen"),
+  resultScreen: getEl("resultScreen"),
+  resultText: getEl("resultText"),
+  firstValue: getEl("firstScannedValue"),
+  secondValue: getEl("secondScannedValue"),
+  resetBtn: getEl("resetBtn"),
+  modeEnkelBtn: getEl("modeEnkel"),
+  modeMeerdereBtn: getEl("modeMeerdere"),
+};
 
 // -------------------------------------------------------------
-// RESET
+// BIND EVENTS
 // -------------------------------------------------------------
+function bindUIEvents() {
+  UI.resetBtn.addEventListener("click", resetApp);
+  UI.modeEnkelBtn.addEventListener("click", () => setMode("enkel"));
+  UI.modeMeerdereBtn.addEventListener("click", () => setMode("meerdere"));
+
+  document.addEventListener("keydown", handleKeyInput);
+}
+
+// -------------------------------------------------------------
+// MODE & RESET
+// -------------------------------------------------------------
+function setMode(newMode) {
+  mode = newMode;
+  UI.modeEnkelBtn.classList.toggle("active", mode === "enkel");
+  UI.modeMeerdereBtn.classList.toggle("active", mode === "meerdere");
+  resetApp();
+}
+
 function resetApp() {
   state = State.SCAN_1;
-
   firstValue = null;
   secondValue = null;
   buffer = "";
   acceptingInput = true;
 
-  midScreen.classList.add("hidden");
-  resultScreen.classList.add("hidden");
-
-  statusEl.textContent = "Start scannen";
+  hideElement(UI.midScreen);
+  hideElement(UI.resultScreen);
+  clearResultDisplay();
+  updateStatus("Start scannen");
 }
 
-
-resetBtn.addEventListener("click", resetApp);
-
 // -------------------------------------------------------------
-// MODE SWITCH
-// -------------------------------------------------------------
-function setMode(newMode) {
-  mode = newMode;
-
-  modeEnkelBtn.classList.toggle("active", mode === "enkel");
-  modeMeerdereBtn.classList.toggle("active", mode === "meerdere");
-
-  resetApp();
-}
-
-modeEnkelBtn.addEventListener("click", () => setMode("enkel"));
-modeMeerdereBtn.addEventListener("click", () => setMode("meerdere"));
-
-// -------------------------------------------------------------
-// INPUT (QR via HID)
-// -------------------------------------------------------------
-document.addEventListener("keydown", (e) => {
-  // Blokkeer standaard gedrag ALTIJD
-  e.preventDefault();
-
-  // Alleen verder als we scans accepteren
-  if (!acceptingInput) return;
-
-  if (e.key === "Enter") {
-    const value = buffer.trim();
-    buffer = "";
-    if (value) handleScan(value);
-  } else if (e.key.length === 1) {
-    buffer += e.key;
-  }
-});
-
-
-// -------------------------------------------------------------
-// FLOW
+// SCAN FLOW
 // -------------------------------------------------------------
 function handleScan(raw) {
   const value = normalize(raw);
 
+  // Wis resultaat bij nieuwe eerste scan
+  if (state === State.SCAN_1) {
+    hideElement(UI.resultScreen);
+    clearResultDisplay();
+  }
+
   if (state === State.SCAN_1) {
     firstValue = value;
     buffer = "";
+
     if (mode === "enkel") {
       state = State.SCAN_2;
-      midScreen.classList.remove("hidden");
-      statusEl.textContent = "";
+      showElement(UI.midScreen);
+      updateStatus("");
       acceptingInput = false;
 
       setTimeout(() => {
-        midScreen.classList.add("hidden");
-        statusEl.textContent = "Scan tweede QR";
+        hideElement(UI.midScreen);
+        updateStatus("Scan tweede QR");
         acceptingInput = true;
       }, 1000);
     } else {
-      // meerdere modus
       state = State.SCAN_2;
-      statusEl.textContent = "Scan tweede QR";
+      updateStatus("Scan tweede QR");
       acceptingInput = true;
     }
 
@@ -123,57 +122,64 @@ function handleScan(raw) {
 }
 
 // -------------------------------------------------------------
-// RESULT DISPLAY
+// RESULT LOGIC
 // -------------------------------------------------------------
 function showResult(ok) {
-  resultText.textContent = ok ? "GOED" : "FOUT - Klik Reset";
-  resultText.className = "result-text " + (ok ? "ok" : "no");
+  UI.resultText.textContent = ok ? "GOED" : "FOUT - Klik Reset";
+  UI.resultText.className = "result-text " + (ok ? "ok" : "no");
+  UI.firstValue.textContent = firstValue || "";
+  UI.secondValue.textContent = secondValue || "";
 
-  firstScannedValueEl.textContent = firstValue || "";
-  secondScannedValueEl.textContent = secondValue || "";
-
-  resultScreen.classList.remove("hidden");
-  statusEl.textContent = "";
-
+  showElement(UI.resultScreen);
+  updateStatus("");
   playSound(ok);
-
-  if (navigator.vibrate) {
-    navigator.vibrate(ok ? 80 : [120, 60, 120]);
-  }
-
-  // -----------------------------
-  // LOGICA PER MODUS
-  // -----------------------------
+  vibrate(ok);
 
   if (mode === "meerdere") {
     if (ok) {
-      // ✅ MEERDERE + GOED → klaar voor volgende 2e scan
       state = State.SCAN_2;
       secondValue = null;
       acceptingInput = true;
-      statusEl.textContent = "Scan volgende QR";
+      updateStatus("Scan volgende QR");
     } else {
-      // ❌ MEERDERE + FOUT → blokkeren tot reset
       acceptingInput = false;
     }
     return;
   }
 
-  // ---- ENKEL ----
   if (ok) {
-    // ✅ ENKEL + GOED → direct nieuwe 1e scan toestaan
     state = State.SCAN_1;
     firstValue = null;
     secondValue = null;
     acceptingInput = true;
-    statusEl.textContent = "Scan nieuwe 1e QR";
+    updateStatus("Scan nieuwe 1e QR");
   } else {
-    // ❌ ENKEL + FOUT → verplicht reset
     acceptingInput = false;
   }
 }
 
+// -------------------------------------------------------------
+// KEYBOARD INPUT HANDLER
+// -------------------------------------------------------------
+function handleKeyInput(e) {
+  e.preventDefault();
 
+  if (!acceptingInput) {
+    if (state === State.RESULT) {
+      playSound(false);
+      vibrate(false);
+    }
+    return;
+  }
+
+  if (e.key === "Enter") {
+    const value = buffer.trim();
+    buffer = "";
+    if (value) handleScan(value);
+  } else if (e.key.length === 1) {
+    buffer += e.key;
+  }
+}
 
 // -------------------------------------------------------------
 // HELPERS
@@ -182,11 +188,27 @@ function normalize(s) {
   return s.normalize("NFC").trim();
 }
 
-// -------------------------------------------------------------
-// AUDIO
-// -------------------------------------------------------------
-let audioCtx = null;
+function updateStatus(text) {
+  UI.status.textContent = text;
+}
 
+function showElement(el) {
+  el.classList.remove("hidden");
+}
+
+function hideElement(el) {
+  el.classList.add("hidden");
+}
+
+function clearResultDisplay() {
+  UI.resultText.textContent = "";
+  UI.firstValue.textContent = "";
+  UI.secondValue.textContent = "";
+}
+
+// -------------------------------------------------------------
+// FEEDBACK: AUDIO + VIBRATIE
+// -------------------------------------------------------------
 function playSound(ok) {
   try {
     if (!audioCtx) {
@@ -195,7 +217,6 @@ function playSound(ok) {
 
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-
     osc.connect(gain);
     gain.connect(audioCtx.destination);
 
@@ -221,7 +242,13 @@ function playSound(ok) {
   }
 }
 
+function vibrate(ok) {
+  if (navigator.vibrate) {
+    navigator.vibrate(ok ? 80 : [120, 60, 120]);
+  }
+}
+
 // -------------------------------------------------------------
-// INIT
+// START
 // -------------------------------------------------------------
-setMode("enkel");
+initApp();
