@@ -1,7 +1,3 @@
-// Schoneveld Breeding
-// QR Vergelijker met scanner
-// 11-12-2025, DDamen
-
 // -------------------------------------------------------------
 // STATE & MODE
 // -------------------------------------------------------------
@@ -15,17 +11,20 @@ let state = State.SCAN_1;
 let mode = "enkel";
 
 let firstValue = null;
+let secondValue = null;
 let buffer = "";
-let acceptingInput = false;
+let acceptingInput = true;
 
 // -------------------------------------------------------------
 // UI ELEMENTS
 // -------------------------------------------------------------
 const statusEl = document.getElementById("status");
 const midScreen = document.getElementById("midScreen");
-const midNextBtn = document.getElementById("midNextBtn");
 const resultScreen = document.getElementById("resultScreen");
 const resultText = document.getElementById("resultText");
+
+const firstScannedValueEl = document.getElementById("firstScannedValue");
+const secondScannedValueEl = document.getElementById("secondScannedValue");
 
 const resetBtn = document.getElementById("resetBtn");
 const modeEnkelBtn = document.getElementById("modeEnkel");
@@ -37,6 +36,7 @@ const modeMeerdereBtn = document.getElementById("modeMeerdere");
 function resetApp() {
   state = State.SCAN_1;
   firstValue = null;
+  secondValue = null;
   buffer = "";
   acceptingInput = true;
 
@@ -45,6 +45,7 @@ function resetApp() {
 
   statusEl.textContent = "Start scannen";
 }
+
 
 resetBtn.addEventListener("click", resetApp);
 
@@ -88,12 +89,13 @@ function handleScan(raw) {
 
   if (state === State.SCAN_1) {
     firstValue = value;
-    buffer = ""; // important for tweede value
-
+    buffer = "";
     if (mode === "enkel") {
       state = State.SCAN_2;
       midScreen.classList.remove("hidden");
       statusEl.textContent = "";
+      acceptingInput = false;
+
       setTimeout(() => {
         midScreen.classList.add("hidden");
         statusEl.textContent = "Scan tweede QR";
@@ -107,20 +109,14 @@ function handleScan(raw) {
     }
 
   } else if (state === State.SCAN_2) {
-    buffer = value; // set second scanned value
+    secondValue = value;
     acceptingInput = false;
     state = State.RESULT;
 
-    showResult(value === firstValue);
+    const match = value === firstValue;
+    showResult(match);
   }
 }
-
-
-midNextBtn.addEventListener("click", () => {
-  midScreen.classList.add("hidden");
-  acceptingInput = true;
-  statusEl.textContent = "Scan volgende QR";
-});
 
 // -------------------------------------------------------------
 // RESULT DISPLAY
@@ -129,9 +125,8 @@ function showResult(ok) {
   resultText.textContent = ok ? "GOED" : "FOUT";
   resultText.className = "result-text " + (ok ? "ok" : "no");
 
-  // Show scanned values
-  document.getElementById("firstScannedValue").textContent = firstValue;
-  document.getElementById("secondScannedValue").textContent = buffer;
+  firstScannedValueEl.textContent = firstValue || "";
+  secondScannedValueEl.textContent = secondValue || "";
 
   resultScreen.classList.remove("hidden");
   statusEl.textContent = "";
@@ -142,17 +137,22 @@ function showResult(ok) {
     navigator.vibrate(ok ? 80 : [120, 60, 120]);
   }
 
-  if (mode === "meerdere") {
-    setTimeout(() => {
-      state = State.SCAN_2;
-      acceptingInput = true;
-      resultScreen.classList.add("hidden");
-      statusEl.textContent = "Scan volgende QR";
-    }, 2000);
-  } else {
-    setTimeout(() => {
-      resetApp();
-    }, 2000);
+  // ⛔ GEEN automatische doorgang meer
+
+  // Als het resultaat goed is en we zitten in 'meerdere' modus,
+  // dan laten we toe om opnieuw te scannen voor de volgende
+  if (ok && mode === "meerdere") {
+    state = State.SCAN_2;
+    secondValue = null;
+    acceptingInput = true;
+    statusEl.textContent = "Scan volgende QR";
+  }
+
+  // Als het resultaat fout is:
+  //   - blijven we in de result state
+  //   - alleen Reset mag nu opnieuw starten
+  if (!ok) {
+    acceptingInput = false; // blokkeer scannen na fout
   }
 }
 
@@ -170,32 +170,36 @@ function normalize(s) {
 let audioCtx = null;
 
 function playSound(ok) {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
 
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
 
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
 
-  if (ok) {
-    osc.type = "sine";
-    osc.frequency.value = 1200;
-    gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.25);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.25);
-  } else {
-    osc.type = "square";
-    osc.frequency.value = 220;
-    gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.4, audioCtx.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.5);
+    if (ok) {
+      osc.type = "sine";
+      osc.frequency.value = 1200;
+      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.25);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.25);
+    } else {
+      osc.type = "square";
+      osc.frequency.value = 220;
+      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.4, audioCtx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.5);
+    }
+  } catch (e) {
+    console.warn("Audio kon niet worden afgespeeld:", e);
   }
 }
 
