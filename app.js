@@ -1,6 +1,3 @@
-// -------------------------------------------------------------
-// STATE & MODE
-// -------------------------------------------------------------
 const State = {
   SCAN_1: "SCAN_1",
   SCAN_2: "SCAN_2",
@@ -13,52 +10,29 @@ let firstValue = null;
 let secondValue = null;
 let buffer = "";
 let acceptingInput = true;
-
 let audioCtx = null;
 
-// -------------------------------------------------------------
-// INIT
-// -------------------------------------------------------------
-function initApp() {
-  bindUIEvents();
-  setMode("enkel");
-  updateStatus("Start scannen");
-}
-
-// -------------------------------------------------------------
-// UI ELEMENTS
-// -------------------------------------------------------------
-function getEl(id) {
-  return document.getElementById(id);
-}
-
 const UI = {
-  status: getEl("status"),
-  midScreen: getEl("midScreen"),
-  resultScreen: getEl("resultScreen"),
-  resultText: getEl("resultText"),
-  firstValue: getEl("firstScannedValue"),
-  secondValue: getEl("secondScannedValue"),
-  resetBtn: getEl("resetBtn"),
-  modeEnkelBtn: getEl("modeEnkel"),
-  modeMeerdereBtn: getEl("modeMeerdere"),
+  status: document.getElementById("status"),
+  resultScreen: document.getElementById("resultScreen"),
+  resultText: document.getElementById("resultText"),
+  firstValue: document.getElementById("firstScannedValue"),
+  secondValue: document.getElementById("secondScannedValue"),
+  resetBtn: document.getElementById("resetBtn"),
+  modeEnkelBtn: document.getElementById("modeEnkel"),
+  modeMeerdereBtn: document.getElementById("modeMeerdere"),
 };
 
-// -------------------------------------------------------------
-// BIND EVENTS
-// -------------------------------------------------------------
-function bindUIEvents() {
+// INIT
+function initApp() {
   UI.resetBtn.addEventListener("click", resetApp);
   UI.modeEnkelBtn.addEventListener("click", () => setMode("enkel"));
   UI.modeMeerdereBtn.addEventListener("click", () => setMode("meerdere"));
-
   document.addEventListener("keydown", handleKeyInput);
-
+  resetApp();
 }
 
-// -------------------------------------------------------------
-// MODE & RESET
-// -------------------------------------------------------------
+// MODE SWITCH
 function setMode(newMode) {
   mode = newMode;
   UI.modeEnkelBtn.classList.toggle("active", mode === "enkel");
@@ -66,79 +40,50 @@ function setMode(newMode) {
   resetApp();
 }
 
+// RESET
 function resetApp() {
   state = State.SCAN_1;
-
   firstValue = null;
   secondValue = null;
   buffer = "";
   acceptingInput = true;
-
-  // UI reset - consistent via UI object
-  hideElement(UI.midScreen);
   hideElement(UI.resultScreen);
   clearResultDisplay();
   updateStatus("Start scannen");
 }
 
-
-
-// -------------------------------------------------------------
 // SCAN FLOW
-// -------------------------------------------------------------
 function handleScan(raw) {
   const value = normalize(raw);
-
-  // 🔥 NIEUWE 1e SCAN = ALTIJD SCHOON BEGIN
   if (state === State.SCAN_1) {
     hideElement(UI.resultScreen);
     clearResultDisplay();
     buffer = "";
-  }
-
-  if (state === State.SCAN_1) {
     firstValue = value;
-
     if (mode === "enkel") {
       state = State.SCAN_2;
-      showElement(UI.midScreen);
-      updateStatus("");
-      acceptingInput = false;
-
-      setTimeout(() => {
-        hideElement(UI.midScreen);
-        updateStatus("Scan tweede QR");
-        acceptingInput = true;
-      }, 1000);
+      updateStatus("Scan tweede QR");
     } else {
       state = State.SCAN_2;
       updateStatus("Scan tweede QR");
-      acceptingInput = true;
     }
-
   } else if (state === State.SCAN_2) {
     secondValue = value;
     buffer = "";
     acceptingInput = false;
     state = State.RESULT;
-
-    showResult(value === firstValue);
+    showResult(secondValue === firstValue);
   }
 }
 
-
-
-// -------------------------------------------------------------
-// RESULT LOGIC
-// -------------------------------------------------------------
+// SHOW RESULT
 function showResult(ok) {
   UI.resultText.textContent = ok ? "GOED" : "FOUT - Klik Reset";
   UI.resultText.className = "result-text " + (ok ? "ok" : "no");
   UI.firstValue.textContent = firstValue || "";
   UI.secondValue.textContent = secondValue || "";
-
   showElement(UI.resultScreen);
-  updateStatus("");
+  updateStatus(ok ? "Scan nieuwe 1e QR" : "");
   playSound(ok);
   vibrate(ok);
 
@@ -151,34 +96,26 @@ function showResult(ok) {
     } else {
       acceptingInput = false;
     }
-    return;
-  }
-
-  if (ok) {
-    state = State.SCAN_1;
-    firstValue = null;
-    secondValue = null;
-    acceptingInput = true;
-    updateStatus("Scan nieuwe 1e QR");
   } else {
-    acceptingInput = false;
+    if (ok) {
+      state = State.SCAN_1;
+      firstValue = null;
+      secondValue = null;
+      acceptingInput = true;
+    } else {
+      acceptingInput = false;
+    }
   }
 }
 
-// -------------------------------------------------------------
-// KEYBOARD INPUT HANDLER
-// -------------------------------------------------------------
+// INPUT
 function handleKeyInput(e) {
   e.preventDefault();
-
-  if (!acceptingInput) {
-    if (state === State.RESULT) {
-      playSound(false);
-      vibrate(false);
-    }
+  if (!acceptingInput && state === State.RESULT) {
+    playSound(false);
+    vibrate(false);
     return;
   }
-
   if (e.key === "Enter") {
     const value = buffer.trim();
     buffer = "";
@@ -188,64 +125,49 @@ function handleKeyInput(e) {
   }
 }
 
-// -------------------------------------------------------------
 // HELPERS
-// -------------------------------------------------------------
-function normalize(s) {
-  return s.normalize("NFC").trim();
-}
-
 function updateStatus(text) {
   UI.status.textContent = text;
 }
-
 function showElement(el) {
   el.classList.remove("hidden");
 }
-
 function hideElement(el) {
   el.classList.add("hidden");
 }
-
 function clearResultDisplay() {
   UI.resultText.textContent = "";
   UI.firstValue.textContent = "";
   UI.secondValue.textContent = "";
 }
+function normalize(s) {
+  return s.normalize("NFC").trim();
+}
 
-// -------------------------------------------------------------
-// FEEDBACK: AUDIO + VIBRATIE
-// -------------------------------------------------------------
+// FEEDBACK
 function playSound(ok) {
   try {
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
-
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-
     if (ok) {
       osc.type = "sine";
       osc.frequency.value = 1200;
-      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.25);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.25);
     } else {
       osc.type = "square";
       osc.frequency.value = 220;
-      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.4, audioCtx.currentTime + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.5);
     }
+    gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + (ok ? 0.25 : 0.5));
+    osc.start();
+    osc.stop(audioCtx.currentTime + (ok ? 0.25 : 0.5));
   } catch (e) {
-    console.warn("Audio kon niet worden afgespeeld:", e);
+    console.warn("Geluid kon niet worden afgespeeld:", e);
   }
 }
 
@@ -255,7 +177,4 @@ function vibrate(ok) {
   }
 }
 
-// -------------------------------------------------------------
-// START
-// -------------------------------------------------------------
 initApp();

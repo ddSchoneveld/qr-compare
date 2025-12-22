@@ -18,17 +18,16 @@
   <!-- Status bovenaan -->
   <div id="status" class="status">Start scannen</div>
 
-
   <!-- Resultaat -->
-<div id="resultScreen" class="result-screen hidden">
-  <div id="resultText" class="result-text"></div>
-  <div id="scannedInfo" class="scanned-info">
-    <div><strong>1e:</strong> <span id="firstScannedValue"></span></div>
-    <div><strong>2e:</strong> <span id="secondScannedValue"></span></div>
+  <div id="resultScreen" class="result-screen hidden">
+    <div id="resultText" class="result-text"></div>
+    <div class="scanned-info">
+      <div><strong>1e:</strong> <span id="firstScannedValue"></span></div>
+      <div><strong>2e:</strong> <span id="secondScannedValue"></span></div>
+    </div>
   </div>
-</div>
 
-  <!-- Onderin: mode wissel -->
+  <!-- Onderin: moduskeuze -->
   <div id="modeBar" class="mode-bar">
     <div id="modeEnkel" class="mode-btn active">Enkel</div>
     <div id="modeMeerdere" class="mode-btn">Meerdere</div>
@@ -38,14 +37,11 @@
   <script src="app.js"></script>
 
   <script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/service-worker.js")
-        .then(() => console.log("Service Worker registered"))
-        .catch(err => console.error("SW registration failed:", err));
-    });
-  }
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js")
+        .then(() => console.log("Service Worker geregistreerd"))
+        .catch(err => console.error("SW registratie mislukt:", err));
+    }
   </script>
-
 </body>
 </html>
