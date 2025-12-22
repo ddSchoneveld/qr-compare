@@ -141,24 +141,38 @@ function showResult(ok) {
     navigator.vibrate(ok ? 80 : [120, 60, 120]);
   }
 
-  // ⛔ GEEN automatische doorgang meer
+  // -----------------------------
+  // LOGICA PER MODUS
+  // -----------------------------
 
-  // Als het resultaat goed is en we zitten in 'meerdere' modus,
-  // dan laten we toe om opnieuw te scannen voor de volgende
-  if (ok && mode === "meerdere") {
-    state = State.SCAN_2;
+  if (mode === "meerdere") {
+    if (ok) {
+      // ✅ MEERDERE + GOED → klaar voor volgende 2e scan
+      state = State.SCAN_2;
+      secondValue = null;
+      acceptingInput = true;
+      statusEl.textContent = "Scan volgende QR";
+    } else {
+      // ❌ MEERDERE + FOUT → blokkeren tot reset
+      acceptingInput = false;
+    }
+    return;
+  }
+
+  // ---- ENKEL ----
+  if (ok) {
+    // ✅ ENKEL + GOED → direct nieuwe 1e scan toestaan
+    state = State.SCAN_1;
+    firstValue = null;
     secondValue = null;
     acceptingInput = true;
-    statusEl.textContent = "Scan volgende QR";
-  }
-
-  // Als het resultaat fout is:
-  //   - blijven we in de result state
-  //   - alleen Reset mag nu opnieuw starten
-  if (!ok) {
-    acceptingInput = false; // blokkeer scannen na fout
+    statusEl.textContent = "Scan nieuwe 1e QR";
+  } else {
+    // ❌ ENKEL + FOUT → verplicht reset
+    acceptingInput = false;
   }
 }
+
 
 
 // -------------------------------------------------------------
