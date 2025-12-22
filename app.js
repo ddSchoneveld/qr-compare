@@ -88,19 +88,26 @@ function handleScan(raw) {
 
   if (state === State.SCAN_1) {
     firstValue = value;
-    acceptingInput = false;
+    buffer = ""; // important for tweede value
 
     if (mode === "enkel") {
       state = State.SCAN_2;
-      statusEl.textContent = "";
       midScreen.classList.remove("hidden");
+      statusEl.textContent = "";
+      setTimeout(() => {
+        midScreen.classList.add("hidden");
+        statusEl.textContent = "Scan tweede QR";
+        acceptingInput = true;
+      }, 1000);
     } else {
-      // In meerdere mode, go directly to compare with future scans
+      // meerdere modus
       state = State.SCAN_2;
-      statusEl.textContent = "Scan volgende QR";
+      statusEl.textContent = "Scan tweede QR";
       acceptingInput = true;
     }
+
   } else if (state === State.SCAN_2) {
+    buffer = value; // set second scanned value
     acceptingInput = false;
     state = State.RESULT;
 

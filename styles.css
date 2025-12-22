@@ -104,3 +104,26 @@
 .result-text.no + .scanned-info {
   color: #ff4444;
 }
+
+.result-screen {
+  text-align: center;
+  margin-top: 2em;
+}
+
+.scanned-info {
+  margin-top: 1em;
+  font-size: 2em;
+  color: #ccc;
+}
+
+.result-text.ok + .scanned-info {
+  color: #00cc66;
+}
+
+.result-text.no + .scanned-info {
+  color: #ff4444;
+}
+
+.mid-text {
+  font-size: 2em;
+}
