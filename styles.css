@@ -28,27 +28,37 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  padding: 2rem;
+  border-radius: 16px;
+  transition: background 0.4s ease;
 }
 
-.result-text.ok {
-  color: #28a745;
-  font-size: clamp(3rem, 6vw, 4rem);
-  font-weight: 700;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+/* GOED */
+.result-screen.ok {
+  background-color: #28a745; /* Groen */
+  color: white;
 }
 
-.result-text.no {
-  color: #dc3545;
-  font-size: clamp(3rem, 6vw, 4rem);
-  font-weight: 700;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+/* FOUT */
+.result-screen.no {
+  background-color: #dc3545; /* Rood */
+  color: white;
 }
+
+/* Result text bovenin */
+.result-text {
+  font-size: clamp(3rem, 6vw, 4rem);
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+}
+
 
 .scanned-info {
-  margin-top: 1rem;
-  font-size: clamp(1rem, 3vw, 1.4rem);
-  color: #444;
-  line-height: 1.4;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 600;
+  line-height: 1.6;
+  color: inherit; 
 }
 
 /* Modus knoppen */

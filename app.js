@@ -68,6 +68,7 @@ function handleScan(raw) {
 
   if (state === State.SCAN_1) {
     firstValue = value;
+    UI.resultScreen.classList.remove("ok", "no");
 
     // Laat direct de eerste scan zien
     UI.firstValue.textContent = firstValue;
@@ -95,6 +96,9 @@ function handleScan(raw) {
 function showResult(ok) {
   UI.resultText.textContent = ok ? "GOED" : "FOUT - Klik Reset";
   UI.resultText.className = "result-text " + (ok ? "ok" : "no");
+
+  UI.resultScreen.classList.remove("ok", "no");
+  UI.resultScreen.classList.add(ok ? "ok" : "no");
   UI.firstValue.textContent = firstValue || "";
   UI.secondValue.textContent = secondValue || "";
   showElement(UI.resultScreen);
