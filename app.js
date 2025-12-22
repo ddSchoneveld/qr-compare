@@ -59,8 +59,9 @@ function resetApp() {
   midScreen.classList.add("hidden");
   resultScreen.classList.add("hidden");
 
-  statusEl.textContent = "Scan 1e QR";
+  statusEl.textContent = "Start scannen";
 }
+
 // -------------------------------------------------------------
 // MODE SWITCH
 // -------------------------------------------------------------
@@ -101,14 +102,14 @@ function handleScan(raw) {
 
   switch (state) {
     case State.SCAN_1:
-    firstValue = value;
-    state = State.SCAN_2;
+      firstValue = value;
+      state = State.SCAN_2;
 
-    acceptingInput = false;
+      acceptingInput = false;
 
-    statusEl.textContent = "";
-    midScreen.classList.remove("hidden");
-    break;
+      statusEl.textContent = "";
+      midScreen.classList.remove("hidden");
+      break;
 
     case State.SCAN_2:
       acceptingInput = false;
@@ -125,7 +126,7 @@ function handleScan(raw) {
 midNextBtn.addEventListener("click", () => {
   midScreen.classList.add("hidden");
   acceptingInput = true;
-  statusEl.textContent = "Scan 2e QR";
+  statusEl.textContent = "Scan volgende QR";
 });
 
 nextBtn.addEventListener("click", () => {
