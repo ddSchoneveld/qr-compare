@@ -56,10 +56,12 @@ function resetApp() {
   buffer = "";
   acceptingInput = true;
   hideElement(UI.resultScreen);
+  UI.resultScreen.classList.remove("ok", "no"); 
   clearResultDisplay();
   updateStatus("Start scannen");
   UI.resetBtn.classList.remove("danger");
 }
+
 
 // SCAN FLOW
 function handleScan(raw) {
