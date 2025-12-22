@@ -35,6 +35,7 @@ const modeMeerdereBtn = document.getElementById("modeMeerdere");
 // -------------------------------------------------------------
 function resetApp() {
   state = State.SCAN_1;
+
   firstValue = null;
   secondValue = null;
   buffer = "";
@@ -68,6 +69,10 @@ modeMeerdereBtn.addEventListener("click", () => setMode("meerdere"));
 // INPUT (QR via HID)
 // -------------------------------------------------------------
 document.addEventListener("keydown", (e) => {
+  // Blokkeer standaard gedrag ALTIJD
+  e.preventDefault();
+
+  // Alleen verder als we scans accepteren
   if (!acceptingInput) return;
 
   if (e.key === "Enter") {
@@ -77,9 +82,8 @@ document.addEventListener("keydown", (e) => {
   } else if (e.key.length === 1) {
     buffer += e.key;
   }
-
-  e.preventDefault();
 });
+
 
 // -------------------------------------------------------------
 // FLOW
