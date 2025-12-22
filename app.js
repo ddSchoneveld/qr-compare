@@ -30,13 +30,21 @@ function initApp() {
   UI.modeMeerdereBtn.addEventListener("click", () => setMode("meerdere"));
   document.addEventListener("keydown", handleKeyInput);
   resetApp();
+  setMode("enkel");
 }
 
 // MODE SWITCH
 function setMode(newMode) {
   mode = newMode;
-  UI.modeEnkelBtn.classList.toggle("active", mode === "enkel");
-  UI.modeMeerdereBtn.classList.toggle("active", mode === "meerdere");
+  UI.modeEnkelBtn.classList.remove("active", "enkel", "meerdere");
+  UI.modeMeerdereBtn.classList.remove("active", "enkel", "meerdere");
+
+  if (mode === "enkel") {
+    UI.modeEnkelBtn.classList.add("active", "enkel");
+  } else {
+    UI.modeMeerdereBtn.classList.add("active", "meerdere");
+  }
+
   resetApp();
 }
 
@@ -50,6 +58,7 @@ function resetApp() {
   hideElement(UI.resultScreen);
   clearResultDisplay();
   updateStatus("Start scannen");
+  UI.resetBtn.classList.remove("danger");
 }
 
 // SCAN FLOW
@@ -106,6 +115,13 @@ function showResult(ok) {
       acceptingInput = false;
     }
   }
+
+  if (!ok) {
+    UI.resetBtn.classList.add("danger");
+    } else {
+      UI.resetBtn.classList.remove("danger");
+    }
+
 }
 
 // INPUT
@@ -150,26 +166,63 @@ function playSound(ok) {
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+
     if (ok) {
+      // ✅ Korte hoge beep (GOED)
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
       osc.type = "sine";
       osc.frequency.value = 1200;
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.3, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+
+      osc.start(now);
+      osc.stop(now + 0.25);
+
     } else {
-      osc.type = "square";
-      osc.frequency.value = 220;
+      // ❌ "boop‑boop" foutgeluid
+
+      // Eerste boop
+      const osc1 = audioCtx.createOscillator();
+      const gain1 = audioCtx.createGain();
+
+      osc1.type = "square";
+      osc1.frequency.value = 300;
+
+      osc1.connect(gain1);
+      gain1.connect(audioCtx.destination);
+
+      gain1.gain.setValueAtTime(0.3, now);
+      osc1.start(now);
+      osc1.stop(now + 0.2);
+
+      // Tweede boop (iets lager, iets later)
+      const osc2 = audioCtx.createOscillator();
+      const gain2 = audioCtx.createGain();
+
+      osc2.type = "square";
+      osc2.frequency.value = 180;
+
+      osc2.connect(gain2);
+      gain2.connect(audioCtx.destination);
+
+      gain2.gain.setValueAtTime(0.3, now + 0.3);
+      osc2.start(now + 0.3);
+      osc2.stop(now + 0.6);
     }
-    gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + (ok ? 0.25 : 0.5));
-    osc.start();
-    osc.stop(audioCtx.currentTime + (ok ? 0.25 : 0.5));
   } catch (e) {
     console.warn("Geluid kon niet worden afgespeeld:", e);
   }
 }
+
 
 function vibrate(ok) {
   if (navigator.vibrate) {

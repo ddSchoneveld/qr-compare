@@ -1,15 +1,19 @@
+/* ===== BODY LAYOUT ===== */
 body {
   margin: 0;
   font-family: sans-serif;
   background: white;
   color: black;
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   height: 100vh;
+  padding: 1rem;
 }
 
+/* ===== STATUS ===== */
 .status {
   font-size: 2.5rem;
   margin: 1rem;
@@ -17,6 +21,7 @@ body {
   text-align: center;
 }
 
+/* ===== RESULTAAT ===== */
 .result-screen {
   margin-top: 2rem;
   text-align: center;
@@ -40,10 +45,11 @@ body {
   color: #333;
 }
 
+/* ===== MODUS KNOPPEN ===== */
 .mode-bar {
   display: flex;
   gap: 1rem;
-  margin-top: 2rem;
+  margin-top: auto;
 }
 
 .mode-btn {
@@ -54,22 +60,36 @@ body {
   cursor: pointer;
 }
 
-.mode-btn.active {
+.mode-btn.active.enkel {
   background: #00bfff;
   color: white;
+  border-color: #00bfff;
 }
 
-.reset-btn {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  padding: 1rem 2rem;
-  background: #444;
+.mode-btn.active.meerdere {
+  background: orange;
   color: white;
+  border-color: orange;
+}
+
+/* ===== RESET KNOP ===== */
+.reset-btn {
+  width: 90%;
+  max-width: 400px;
+  padding: 1.2rem;
+  font-size: 1.5rem;
+  background-color: #ccc;
+  color: black;
   border: none;
   border-radius: 8px;
-  font-size: 1.2rem;
   cursor: pointer;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.reset-btn.danger {
+  background-color: red;
+  color: white;
 }
 
 .hidden {
