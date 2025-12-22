@@ -64,26 +64,32 @@ function resetApp() {
 // SCAN FLOW
 function handleScan(raw) {
   const value = normalize(raw);
+  buffer = "";
+
   if (state === State.SCAN_1) {
-    hideElement(UI.resultScreen);
-    clearResultDisplay();
-    buffer = "";
     firstValue = value;
-    if (mode === "enkel") {
-      state = State.SCAN_2;
-      updateStatus("Scan tweede QR");
-    } else {
-      state = State.SCAN_2;
-      updateStatus("Scan tweede QR");
-    }
+
+    // Laat direct de eerste scan zien
+    UI.firstValue.textContent = firstValue;
+    UI.secondValue.textContent = "";
+    UI.resultText.textContent = "";
+    UI.resultText.className = "result-text";
+    showElement(UI.resultScreen);
+
+    // Ga door naar tweede scan
+    state = State.SCAN_2;
+    updateStatus("Scan tweede QR");
+
   } else if (state === State.SCAN_2) {
     secondValue = value;
-    buffer = "";
     acceptingInput = false;
     state = State.RESULT;
+
+    // Vergelijk en toon resultaat
     showResult(secondValue === firstValue);
   }
 }
+
 
 // SHOW RESULT
 function showResult(ok) {

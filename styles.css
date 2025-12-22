@@ -7,14 +7,17 @@ body {
   min-height: 100vh;
   padding: 2vh 2vw;
   box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f9f9f9;
+  color: #333;
 }
 
 /* Status bovenin */
 .status {
-  font-size: clamp(1.5rem, 4vw, 3rem);
-  margin: 2vh 0;
-  font-weight: bold;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 600;
   text-align: center;
+  margin: 2vh 0;
 }
 
 /* Resultaat */
@@ -28,37 +31,50 @@ body {
 }
 
 .result-text.ok {
-  color: green;
-  font-size: clamp(2.5rem, 6vw, 4rem);
-  font-weight: bold;
+  color: #28a745;
+  font-size: clamp(3rem, 6vw, 4rem);
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .result-text.no {
-  color: red;
-  font-size: clamp(2rem, 5.5vw, 3.5rem);
-  font-weight: bold;
+  color: #dc3545;
+  font-size: clamp(3rem, 6vw, 4rem);
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .scanned-info {
   margin-top: 1rem;
-  font-size: clamp(1rem, 3vw, 1.5rem);
-  color: #333;
+  font-size: clamp(1rem, 3vw, 1.4rem);
+  color: #444;
+  line-height: 1.4;
 }
 
 /* Modus knoppen */
 .mode-bar {
   display: flex;
   gap: 1rem;
-  margin: 2vh 0;
+  margin: 3vh 0 1vh;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .mode-btn {
-  padding: 1rem 2rem;
-  font-size: 1.2rem;
-  border-radius: 8px;
+  padding: 0.9rem 1.8rem;
+  font-size: 1.1rem;
+  border-radius: 10px;
   border: 2px solid #00bfff;
+  background: white;
+  color: #00bfff;
   cursor: pointer;
-  transition: background 0.3s;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+}
+
+.mode-btn:hover {
+  background: #e0f7ff;
 }
 
 .mode-btn.active.enkel {
@@ -73,23 +89,30 @@ body {
   border-color: orange;
 }
 
-/* Reset knop onderaan */
+/* Reset knop */
 .reset-btn {
   width: 90%;
   max-width: 480px;
   padding: 1.2rem;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   margin-bottom: 2vh;
-  background: #ccc;
-  color: #000;
+  background: #e0e0e0;
+  color: #333;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: background 0.3s ease, transform 0.2s ease;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.reset-btn:hover {
+  background: #d0d0d0;
+  transform: translateY(-1px);
 }
 
 .reset-btn.danger {
-  background: red;
+  background: #dc3545;
   color: white;
 }
 
