@@ -1,63 +1,64 @@
-/* ===== BODY LAYOUT ===== */
+/* Basislayout */
 body {
-  margin: 0;
-  font-family: sans-serif;
-  background: white;
-  color: black;
-
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: space-between;
-  height: 100vh;
-  padding: 1rem;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2vh 2vw;
+  box-sizing: border-box;
 }
 
-/* ===== STATUS ===== */
+/* Status bovenin */
 .status {
-  font-size: 2.5rem;
-  margin: 1rem;
+  font-size: clamp(1.5rem, 4vw, 3rem);
+  margin: 2vh 0;
   font-weight: bold;
   text-align: center;
 }
 
-/* ===== RESULTAAT ===== */
+/* Resultaat */
 .result-screen {
-  margin-top: 2rem;
   text-align: center;
+  margin-top: 2vh;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .result-text.ok {
   color: green;
-  font-size: 4rem;
+  font-size: clamp(2.5rem, 6vw, 4rem);
   font-weight: bold;
 }
 
 .result-text.no {
   color: red;
-  font-size: 3.5rem;
+  font-size: clamp(2rem, 5.5vw, 3.5rem);
   font-weight: bold;
 }
 
 .scanned-info {
   margin-top: 1rem;
-  font-size: 1.5rem;
+  font-size: clamp(1rem, 3vw, 1.5rem);
   color: #333;
 }
 
-/* ===== MODUS KNOPPEN ===== */
+/* Modus knoppen */
 .mode-bar {
   display: flex;
   gap: 1rem;
-  margin-top: auto;
+  margin: 2vh 0;
 }
 
 .mode-btn {
   padding: 1rem 2rem;
-  font-size: 1.5rem;
-  border-radius: 10px;
+  font-size: 1.2rem;
+  border-radius: 8px;
   border: 2px solid #00bfff;
   cursor: pointer;
+  transition: background 0.3s;
 }
 
 .mode-btn.active.enkel {
@@ -72,23 +73,23 @@ body {
   border-color: orange;
 }
 
-/* ===== RESET KNOP ===== */
+/* Reset knop onderaan */
 .reset-btn {
   width: 90%;
-  max-width: 400px;
+  max-width: 480px;
   padding: 1.2rem;
   font-size: 1.5rem;
-  background-color: #ccc;
-  color: black;
+  margin-bottom: 2vh;
+  background: #ccc;
+  color: #000;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
+  transition: background 0.3s;
 }
 
 .reset-btn.danger {
-  background-color: red;
+  background: red;
   color: white;
 }
 

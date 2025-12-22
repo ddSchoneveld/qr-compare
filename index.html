@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QR Controle</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- Status bovenaan -->
+  <!-- Status -->
   <div id="status" class="status">Start scannen</div>
 
-  <!-- Resultaat -->
+  <!-- Result -->
   <div id="resultScreen" class="result-screen hidden">
     <div id="resultText" class="result-text"></div>
     <div class="scanned-info">
@@ -20,16 +20,16 @@
     </div>
   </div>
 
-  <!-- Onderin: modus wissel -->
+  <!-- Mode switch -->
   <div id="modeBar" class="mode-bar">
     <div id="modeEnkel" class="mode-btn active">Enkel</div>
     <div id="modeMeerdere" class="mode-btn">Meerdere</div>
   </div>
 
-  <!-- Reset knop helemaal onderaan -->
+  <!-- Reset button at bottom -->
   <button id="resetBtn" class="reset-btn">Reset</button>
 
+  <!-- Script -->
   <script src="app.js"></script>
-
 </body>
 </html>
