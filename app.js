@@ -74,14 +74,13 @@ function resetApp() {
   buffer = "";
   acceptingInput = true;
 
-  // UI reset (ALTIJD via UI-object)
+  // UI reset - consistent via UI object
   hideElement(UI.midScreen);
   hideElement(UI.resultScreen);
-
   clearResultDisplay();
-
   updateStatus("Start scannen");
 }
+
 
 
 // -------------------------------------------------------------
