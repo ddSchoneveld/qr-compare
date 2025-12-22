@@ -67,15 +67,21 @@ function setMode(newMode) {
 
 function resetApp() {
   state = State.SCAN_1;
+
   firstValue = null;
   secondValue = null;
   buffer = "";
   acceptingInput = true;
 
-  hideElement(UI.midScreen);
-  hideElement(UI.resultScreen);
-  clearResultDisplay();
-  updateStatus("Start scannen");
+  // UI reset
+  midScreen.classList.add("hidden");
+  resultScreen.classList.add("hidden");
+
+  resultText.textContent = "";
+  firstScannedValueEl.textContent = "";
+  secondScannedValueEl.textContent = "";
+
+  statusEl.textContent = "Start scannen";
 }
 
 // -------------------------------------------------------------
@@ -84,15 +90,15 @@ function resetApp() {
 function handleScan(raw) {
   const value = normalize(raw);
 
-  // Wis resultaat bij nieuwe eerste scan
+  // Wis resultaat bij nieuwe eerste scan (enkel of meerdere)
   if (state === State.SCAN_1) {
     hideElement(UI.resultScreen);
     clearResultDisplay();
+    buffer = ""; // Leeg buffer direct bij 1e QR
   }
 
   if (state === State.SCAN_1) {
     firstValue = value;
-    buffer = "";
 
     if (mode === "enkel") {
       state = State.SCAN_2;
@@ -113,6 +119,7 @@ function handleScan(raw) {
 
   } else if (state === State.SCAN_2) {
     secondValue = value;
+    buffer = "";
     acceptingInput = false;
     state = State.RESULT;
 
@@ -120,6 +127,7 @@ function handleScan(raw) {
     showResult(match);
   }
 }
+
 
 // -------------------------------------------------------------
 // RESULT LOGIC
