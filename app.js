@@ -53,6 +53,7 @@ function bindUIEvents() {
   UI.modeMeerdereBtn.addEventListener("click", () => setMode("meerdere"));
 
   document.addEventListener("keydown", handleKeyInput);
+
 }
 
 // -------------------------------------------------------------
@@ -73,16 +74,15 @@ function resetApp() {
   buffer = "";
   acceptingInput = true;
 
-  // UI reset
-  midScreen.classList.add("hidden");
-  resultScreen.classList.add("hidden");
+  // UI reset (ALTIJD via UI-object)
+  hideElement(UI.midScreen);
+  hideElement(UI.resultScreen);
 
-  resultText.textContent = "";
-  firstScannedValueEl.textContent = "";
-  secondScannedValueEl.textContent = "";
+  clearResultDisplay();
 
-  statusEl.textContent = "Start scannen";
+  updateStatus("Start scannen");
 }
+
 
 // -------------------------------------------------------------
 // SCAN FLOW
@@ -90,11 +90,11 @@ function resetApp() {
 function handleScan(raw) {
   const value = normalize(raw);
 
-  // Wis resultaat bij nieuwe eerste scan (enkel of meerdere)
+  // 🔥 NIEUWE 1e SCAN = ALTIJD SCHOON BEGIN
   if (state === State.SCAN_1) {
     hideElement(UI.resultScreen);
     clearResultDisplay();
-    buffer = ""; // Leeg buffer direct bij 1e QR
+    buffer = "";
   }
 
   if (state === State.SCAN_1) {
@@ -123,10 +123,10 @@ function handleScan(raw) {
     acceptingInput = false;
     state = State.RESULT;
 
-    const match = value === firstValue;
-    showResult(match);
+    showResult(value === firstValue);
   }
 }
+
 
 
 // -------------------------------------------------------------
