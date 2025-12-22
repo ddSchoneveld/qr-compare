@@ -2,42 +2,55 @@
  QR vergelijker
  20-11-2025, DDamen-->
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>QR Controle</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-<!-- Reset linksboven -->
-<button id="resetBtn" class="reset-btn">Reset</button>
+  <!-- Reset knop -->
+  <button id="resetBtn" class="reset-btn">Reset</button>
 
-<!-- Centrale status -->
-<div id="status" class="status">Scan 1e QR</div>
+  <!-- Status bovenaan -->
+  <div id="status" class="status">Start scannen</div>
 
-<!-- Na 1e scan -->
-<div id="midScreen" class="mid-screen hidden">
-  <div class="mid-text">1e QR gescand</div>
-  <button id="midNextBtn">Scan volgende</button>
-</div>
+  <!-- Na 1e scan -->
+  <div id="midScreen" class="mid-screen hidden">
+    <div class="mid-text">1e QR gescand</div>
+    <button id="midNextBtn">Scan volgende</button>
+  </div>
 
-<!-- Resultaat -->
+  <!-- Resultaat -->
 <div id="resultScreen" class="result-screen hidden">
   <div id="resultText" class="result-text"></div>
-</div>
-
-<!-- Onderin: mode -->
-<div id="modeBar" class="mode-bar">
-  <div id="modeEnkel" class="mode-btn active">
-    Enkel
-    <div class="overlay"></div>
-  </div>
-  <div id="modeMeerdere" class="mode-btn">
-    Meerdere
-    <div class="overlay"></div>
+  <div id="scannedInfo" class="scanned-info">
+    <div><strong>1e:</strong> <span id="firstScannedValue"></span></div>
+    <div><strong>2e:</strong> <span id="secondScannedValue"></span></div>
   </div>
 </div>
 
+  <!-- Onderin: mode wissel -->
+  <div id="modeBar" class="mode-bar">
+    <div id="modeEnkel" class="mode-btn active">Enkel</div>
+    <div id="modeMeerdere" class="mode-btn">Meerdere</div>
+  </div>
+
+  <!-- Script -->
+  <script src="app.js"></script>
+
+  <script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(() => console.log("Service Worker registered"))
+        .catch(err => console.error("SW registration failed:", err));
+    });
+  }
+  </script>
+
+</body>
+</html>

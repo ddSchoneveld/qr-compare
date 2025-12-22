@@ -1,115 +1,106 @@
-/* ---------------- BASE ---------------- */
-* {
-  box-sizing: border-box;
-}
-
-html, body {
+.body {
   margin: 0;
-  width: 100%;
-  height: 100%;
-  background: #2f3439;
-  color: #fff;
-  font-family: system-ui, sans-serif;
-  overflow: hidden;
+  font-family: Arial, sans-serif;
+  background-color: #2c2f36;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100vh;
+  padding: 1em;
 }
 
-/* ---------------- RESET ---------------- */
 .reset-btn {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  top: 1em;
+  left: 1em;
+  padding: 1em 1.5em;
+  font-size: 1.5em;
+  background-color: #444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
-/* ---------------- STATUS (CENTER) ---------------- */
 .status {
-  position: absolute;
-  top: 35%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 28px;
-  font-weight: 500;
   text-align: center;
+  font-size: 3em;
+  font-weight: bold;
+  margin-top: 3em;
 }
 
-/* ---------------- MID SCREEN ---------------- */
-.mid-screen {
-  position: absolute;
-  top: 45%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.mid-screen,
+.result-screen {
   text-align: center;
+  margin-top: 2em;
 }
 
 .mid-text {
-  font-size: 24px;
-  margin-bottom: 12px;
+  font-size: 2.5em;
+  margin-bottom: 1em;
 }
 
-/* ---------------- RESULT ---------------- */
-.result-screen {
-  position: absolute;
-  top: 45%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+#midNextBtn {
+  padding: 1em 2em;
+  font-size: 2em;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 .result-text {
-  font-size: 48px;
-  font-weight: 700;
+  font-size: 4em;
+  font-weight: bold;
 }
 
 .result-text.ok {
-  color: #4ade80;
+  color: #00cc66;
 }
 
 .result-text.no {
-  color: #f87171;
+  color: #ff4444;
 }
 
-/* ---------------- MODE BAR (BOTTOM) ---------------- */
 .mode-bar {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-
   display: flex;
-  flex-direction: row;
-  gap: 16px;
-
-  z-index: 10;
+  justify-content: center;
+  gap: 1em;
+  margin-top: auto;
+  padding: 1em;
 }
 
 .mode-btn {
-  position: relative;
-  padding: 10px 20px;
-  border: 2px solid #7dd3fc;
-  color: #7dd3fc;
-  border-radius: 6px;
+  padding: 1em 2em;
+  font-size: 1.5em;
+  border: 2px solid #00bfff;
+  border-radius: 8px;
   cursor: pointer;
-  overflow: hidden;
-}
-
-/* Overlay shows selection */
-.mode-btn .overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(125, 211, 252, 0.35);
-  display: none;
-}
-
-.mode-btn.active .overlay {
-  display: block;
+  background-color: transparent;
+  color: #00bfff;
 }
 
 .mode-btn.active {
-  background: #7dd3fc;
-  color: #1e293b;
+  background-color: #00bfff;
+  color: white;
 }
 
-/* ---------------- BUTTONS ---------------- */
-.button {
-  background: transparent;
-  border: 2px solid #7dd3fc;
-  color: #7dd3fc;
-  padding: 8px 14;
+.hidden {
+  display: none;
+}
+
+.scanned-info {
+  margin-top: 1em;
+  font-size: 1.5em;
+  color: #ddd;
+}
+
+.result-text.ok + .scanned-info {
+  color: #00cc66;
+}
+
+.result-text.no + .scanned-info {
+  color: #ff4444;
 }

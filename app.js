@@ -19,37 +19,21 @@ let buffer = "";
 let acceptingInput = false;
 
 // -------------------------------------------------------------
-// UI
+// UI ELEMENTS
 // -------------------------------------------------------------
-const welcomeScreen = document.getElementById("welcomeScreen");
-
-const modeBar = document.getElementById("modeBar");
-const modeEnkelBtn = document.getElementById("modeEnkel");
-const modeMeerdereBtn = document.getElementById("modeMeerdere");
-const resetBtn = document.getElementById("resetBtn");
-
 const statusEl = document.getElementById("status");
-
 const midScreen = document.getElementById("midScreen");
 const midNextBtn = document.getElementById("midNextBtn");
-
 const resultScreen = document.getElementById("resultScreen");
 const resultText = document.getElementById("resultText");
-const nextBtn = document.getElementById("nextBtn");
 
-// Sounds
-function playSound(ok) {
-  const sound = ok ? soundGood : soundBad;
-  sound.currentTime = 0;
-  sound.play().catch(() => {});
-}
-
+const resetBtn = document.getElementById("resetBtn");
+const modeEnkelBtn = document.getElementById("modeEnkel");
+const modeMeerdereBtn = document.getElementById("modeMeerdere");
 
 // -------------------------------------------------------------
 // RESET
-
-resetBtn.addEventListener("click", resetApp);
-
+// -------------------------------------------------------------
 function resetApp() {
   state = State.SCAN_1;
   firstValue = null;
@@ -62,12 +46,11 @@ function resetApp() {
   statusEl.textContent = "Start scannen";
 }
 
+resetBtn.addEventListener("click", resetApp);
+
 // -------------------------------------------------------------
 // MODE SWITCH
 // -------------------------------------------------------------
-modeEnkelBtn.addEventListener("click", () => setMode("enkel"));
-modeMeerdereBtn.addEventListener("click", () => setMode("meerdere"));
-
 function setMode(newMode) {
   mode = newMode;
 
@@ -77,8 +60,11 @@ function setMode(newMode) {
   resetApp();
 }
 
+modeEnkelBtn.addEventListener("click", () => setMode("enkel"));
+modeMeerdereBtn.addEventListener("click", () => setMode("meerdere"));
+
 // -------------------------------------------------------------
-// INPUT (HID / KEYBOARD)
+// INPUT (QR via HID)
 // -------------------------------------------------------------
 document.addEventListener("keydown", (e) => {
   if (!acceptingInput) return;
@@ -95,58 +81,50 @@ document.addEventListener("keydown", (e) => {
 });
 
 // -------------------------------------------------------------
-// FLOW LOGIC
+// FLOW
 // -------------------------------------------------------------
 function handleScan(raw) {
   const value = normalize(raw);
 
-  switch (state) {
-    case State.SCAN_1:
-      firstValue = value;
+  if (state === State.SCAN_1) {
+    firstValue = value;
+    acceptingInput = false;
+
+    if (mode === "enkel") {
       state = State.SCAN_2;
-
-      acceptingInput = false;
-
       statusEl.textContent = "";
       midScreen.classList.remove("hidden");
-      break;
+    } else {
+      // In meerdere mode, go directly to compare with future scans
+      state = State.SCAN_2;
+      statusEl.textContent = "Scan volgende QR";
+      acceptingInput = true;
+    }
+  } else if (state === State.SCAN_2) {
+    acceptingInput = false;
+    state = State.RESULT;
 
-    case State.SCAN_2:
-      acceptingInput = false;
-      state = State.RESULT;
-
-      showResult(value === firstValue);
-      break;
+    showResult(value === firstValue);
   }
 }
 
-// -------------------------------------------------------------
-// UI TRANSITIONS
-// -------------------------------------------------------------
+
 midNextBtn.addEventListener("click", () => {
   midScreen.classList.add("hidden");
   acceptingInput = true;
   statusEl.textContent = "Scan volgende QR";
 });
 
-nextBtn.addEventListener("click", () => {
-  resultScreen.classList.add("hidden");
-
-  if (mode === "meerdere") {
-    state = State.SCAN_2;
-    acceptingInput = true;
-    statusEl.textContent = "Scan volgende 2e QR";
-  } else {
-    resetApp();
-  }
-});
-
 // -------------------------------------------------------------
-// RESULT
+// RESULT DISPLAY
 // -------------------------------------------------------------
 function showResult(ok) {
   resultText.textContent = ok ? "GOED" : "FOUT";
   resultText.className = "result-text " + (ok ? "ok" : "no");
+
+  // Show scanned values
+  document.getElementById("firstScannedValue").textContent = firstValue;
+  document.getElementById("secondScannedValue").textContent = buffer;
 
   resultScreen.classList.remove("hidden");
   statusEl.textContent = "";
@@ -156,7 +134,21 @@ function showResult(ok) {
   if (navigator.vibrate) {
     navigator.vibrate(ok ? 80 : [120, 60, 120]);
   }
+
+  if (mode === "meerdere") {
+    setTimeout(() => {
+      state = State.SCAN_2;
+      acceptingInput = true;
+      resultScreen.classList.add("hidden");
+      statusEl.textContent = "Scan volgende QR";
+    }, 2000);
+  } else {
+    setTimeout(() => {
+      resetApp();
+    }, 2000);
+  }
 }
+
 
 // -------------------------------------------------------------
 // HELPERS
@@ -165,14 +157,8 @@ function normalize(s) {
   return s.normalize("NFC").trim();
 }
 
-function playSound(ok) {
-  const sound = ok ? soundGood : soundBad;
-  sound.currentTime = 0;
-  sound.play().catch(() => {});
-}
-
 // -------------------------------------------------------------
-// SOUND (Web Audio API)
+// AUDIO
 // -------------------------------------------------------------
 let audioCtx = null;
 
@@ -188,7 +174,6 @@ function playSound(ok) {
   gain.connect(audioCtx.destination);
 
   if (ok) {
-    // ✅ PLING (hoog & kort)
     osc.type = "sine";
     osc.frequency.value = 1200;
     gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
@@ -197,7 +182,6 @@ function playSound(ok) {
     osc.start();
     osc.stop(audioCtx.currentTime + 0.25);
   } else {
-    // ❌ BEEP (laag & iets langer)
     osc.type = "square";
     osc.frequency.value = 220;
     gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
@@ -208,6 +192,7 @@ function playSound(ok) {
   }
 }
 
-// Init bij laden
-resetApp();
+// -------------------------------------------------------------
+// INIT
+// -------------------------------------------------------------
 setMode("enkel");
