@@ -126,7 +126,7 @@ function handleScan(raw) {
 // RESULT DISPLAY
 // -------------------------------------------------------------
 function showResult(ok) {
-  resultText.textContent = ok ? "GOED" : "FOUT";
+  resultText.textContent = ok ? "GOED" : "FOUT - Klik Reset";
   resultText.className = "result-text " + (ok ? "ok" : "no");
 
   firstScannedValueEl.textContent = firstValue || "";
