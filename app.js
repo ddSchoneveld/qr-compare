@@ -11,6 +11,7 @@ let secondValue = null;
 let buffer = "";
 let acceptingInput = true;
 let audioCtx = null;
+let scanIndex = 1;
 
 const UI = {
   status: document.getElementById("status"),
@@ -18,6 +19,8 @@ const UI = {
   resultText: document.getElementById("resultText"),
   firstValue: document.getElementById("firstScannedValue"),
   secondValue: document.getElementById("secondScannedValue"),
+  firstLabel: document.getElementById("firstLabel"),
+  secondLabel: document.getElementById("secondLabel"),
   resetBtn: document.getElementById("resetBtn"),
   modeEnkelBtn: document.getElementById("modeEnkel"),
   modeMeerdereBtn: document.getElementById("modeMeerdere"),
@@ -55,13 +58,25 @@ function resetApp() {
   secondValue = null;
   buffer = "";
   acceptingInput = true;
+  scanIndex = 1;
   hideElement(UI.resultScreen);
   UI.resultScreen.classList.remove("ok", "no"); 
   clearResultDisplay();
   updateStatus("Start scannen");
   UI.resetBtn.classList.remove("danger");
+
+  updateScanLabels();
 }
 
+function updateScanLabels() {
+  if (mode === "meerdere") {
+    UI.firstLabel.textContent = "1e";
+    UI.secondLabel.textContent = `${scanIndex + 1}e`;
+  } else {
+    UI.firstLabel.textContent = "1e";
+    UI.secondLabel.textContent = "2e";
+  }
+}
 
 // SCAN FLOW
 function handleScan(raw) {
@@ -81,7 +96,7 @@ function handleScan(raw) {
 
     // Ga door naar tweede scan
     state = State.SCAN_2;
-    updateStatus("Scan tweede QR");
+    updateStatus(mode === "meerdere" ? `Scan ${scanIndex + 1}e QR` : "Scan tweede QR");
 
   } else if (state === State.SCAN_2) {
     secondValue = value;
@@ -110,12 +125,17 @@ function showResult(ok) {
 
   if (mode === "meerdere") {
     if (ok) {
+      scanIndex += 1;
+      firstValue = secondValue;
+      secondvalue = null;
+
       state = State.SCAN_2;
-      secondValue = null;
       acceptingInput = true;
+      updateScanLabels();
       updateStatus("Scan volgende QR");
     } else {
       acceptingInput = false;
+      updateStatus();
     }
   } else {
     if (ok) {
@@ -123,8 +143,11 @@ function showResult(ok) {
       firstValue = null;
       secondValue = null;
       acceptingInput = true;
+      updateStatus("Scan nieuwe 1e QR");
+      updateScanLabels();
     } else {
       acceptingInput = false;
+      updateStatus("");
     }
   }
 
