@@ -12,6 +12,7 @@ let buffer = "";
 let acceptingInput = true;
 let audioCtx = null;
 let scanIndex = 1;
+let pendingLabelUpdate = false;
 
 const UI = {
   status: document.getElementById("status"),
@@ -58,7 +59,9 @@ function resetApp() {
   secondValue = null;
   buffer = "";
   acceptingInput = true;
-  scanIndex = 1;
+
+  scanIndex = 2;
+  pendingLabelUpdate = false;
   hideElement(UI.resultScreen);
   UI.resultScreen.classList.remove("ok", "no"); 
   clearResultDisplay();
@@ -80,6 +83,12 @@ function updateScanLabels() {
 
 // SCAN FLOW
 function handleScan(raw) {
+
+  if (mode === "meerdere" && pendingLabelUpdate && state === State.SCAN_2) {
+    updateScanLabels();
+    pendingLabelUpdate = false;
+  }
+
   const value = normalize(raw);
   buffer = "";
 
@@ -96,7 +105,7 @@ function handleScan(raw) {
 
     // Ga door naar tweede scan
     state = State.SCAN_2;
-    updateStatus(mode === "meerdere" ? `Scan ${scanIndex + 1}e QR` : "Scan tweede QR");
+    updateStatus(mode === "meerdere" ? `Scan ${scanIndex}e QR` : "Scan tweede QR");
 
   } else if (state === State.SCAN_2) {
     secondValue = value;
@@ -119,26 +128,28 @@ function showResult(ok) {
   UI.firstValue.textContent = firstValue || "";
   UI.secondValue.textContent = secondValue || "";
   showElement(UI.resultScreen);
-  updateStatus(ok ? "Scan nieuwe 1e QR" : "");
+
   playSound(ok);
   vibrate(ok);
 
   if (mode === "meerdere") {
+    scanIndex += 1;
+    pendingLabelUpdate = true;
     if (ok) {
-      scanIndex += 1;
       firstValue = secondValue;
       secondValue = null;
+      // Keep firstValue; continue scanning multiple second QR's
 
       state = State.SCAN_2;
       acceptingInput = true;
-      updateScanLabels();
-      updateStatus("Scan volgende QR");
+      updateStatus(`Scan volgende QR`);
     } else {
       acceptingInput = false;
-      updateStatus();
+      updateStatus("");
     }
   } else {
     if (ok) {
+      // Go back to scanning a fresh first QR
       state = State.SCAN_1;
       firstValue = null;
       secondValue = null;
@@ -151,12 +162,8 @@ function showResult(ok) {
     }
   }
 
-  if (!ok) {
-    UI.resetBtn.classList.add("danger");
-    } else {
-      UI.resetBtn.classList.remove("danger");
-    }
-
+  if (!ok) UI.resetBtn.classList.add("danger");
+  else UI.resetBtn.classList.remove("danger");
 }
 
 // INPUT
