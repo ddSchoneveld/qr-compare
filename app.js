@@ -71,7 +71,7 @@ function resetApp() {
 function updateScanLabels() {
   if (mode === "meerdere") {
     UI.firstLabel.textContent = "1e";
-    UI.secondLabel.textContent = `${scanIndex + 1}e`;
+    UI.secondLabel.textContent = `${scanIndex}e`;
   } else {
     UI.firstLabel.textContent = "1e";
     UI.secondLabel.textContent = "2e";
@@ -127,7 +127,7 @@ function showResult(ok) {
     if (ok) {
       scanIndex += 1;
       firstValue = secondValue;
-      secondvalue = null;
+      secondValue = null;
 
       state = State.SCAN_2;
       acceptingInput = true;
